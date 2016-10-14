@@ -10,30 +10,40 @@ import java.util.Scanner;
  */
 public class Autenticacao {
 
-    final static String APP_KEY = "taf1n7qqjq11vzu";
-    final static String APP_SECRET = "mbdfggkxx5cfkzj";
-    static String CODE = "1gsxh84tqGwAAAAAAAAXV5mqi9fj6PRfGfaYarYZqYU";
-    
+    private final String APP_KEY = "taf1n7qqjq11vzu";
+    private final String APP_SECRET = "mbdfggkxx5cfkzj";
+    private String code = "1gsxh84tqGwAAAAAAAAXW6-ER--8omrmxY0uHBGhkDc";
+    private DbxRequestConfig config;
+    private DbxWebAuthNoRedirect webAuth;
 
-    public DbxWebAuthNoRedirect carregarChaveSenha(){
-        DbxAppInfo appInfo = new DbxAppInfo(APP_KEY, APP_SECRET);
-        DbxRequestConfig config = new DbxRequestConfig("FileSync/1.0", Locale.getDefault().toString());
-        DbxWebAuthNoRedirect webAuth = new DbxWebAuthNoRedirect(config, appInfo);
-        return webAuth;
+    public Autenticacao() throws DbxException {
+        carregarChaveSenha();
+        solicitarCodigo();
+        criarUsuario();
     }
-    
-    public String solicitarCodigo(){
-        String authorizeUrl = carregarChaveSenha().start();
+
+    private void carregarChaveSenha() {
+        DbxAppInfo appInfo = new DbxAppInfo(APP_KEY, APP_SECRET);
+        config = new DbxRequestConfig("FileSync/1.0", Locale.getDefault().toString());
+        webAuth = new DbxWebAuthNoRedirect(config, appInfo);
+    }
+
+    private void solicitarCodigo() {
+        String authorizeUrl = webAuth.start();
         System.out.println("1-Acesse o endereco abaixo num browser: ");
         System.out.println(authorizeUrl);
         System.out.print("2-Clique no botão 'Permitir'.");
         System.out.println("(Necessário estar logado numa conta de usuário)");
         System.out.println("3-Digite o código informado: ");
         Scanner entrada = new Scanner(System.in);
-        return entrada.next();
+        code = entrada.next();
+
+    }
+
+    private void criarUsuario() throws DbxException {
+        DbxAuthFinish authFinish = webAuth.finish(code);
+        String accessToken = authFinish.accessToken;
+        DbxClient client = new DbxClient(config, accessToken);
+        System.out.println("--App autenticada pelo usuario '" + client.getAccountInfo().displayName + "'--");
     }
 }
-//        DbxAuthFinish authFinish = webAuth.finish(CODE);
-//        String accessToken = authFinish.accessToken;
-//        DbxClient client = new DbxClient(config, accessToken);
-//        System.out.println("--App autenticada pelo usuario '" + client.getAccountInfo().displayName + "'--");
