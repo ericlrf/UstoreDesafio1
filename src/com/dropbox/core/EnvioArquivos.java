@@ -14,8 +14,11 @@ public class EnvioArquivos {
 
     private File path;
     private File[] conteudoDir;
+    public Autenticacao autenticacao;
+    public String hashDirAnterior;
 
     public EnvioArquivos(Autenticacao autenticacao) throws IOException, DbxException {
+        this.autenticacao = autenticacao;
         carregarDiretorioLocal();
         criarDiretorioNuvem(autenticacao);
     }
@@ -32,14 +35,16 @@ public class EnvioArquivos {
     }
 
     private void criarDiretorioNuvem(Autenticacao autenticacao) throws IOException, DbxException {
+        DbxEntry.Folder diretorio = autenticacao.client.createFolder("/" + autenticacao.client.getAccountInfo().displayName.trim());
         for (File arquivo : conteudoDir) {
             System.out.println("> " + arquivo.getName());
             path = new File(arquivo.getCanonicalPath());
             FileInputStream inputStream = new FileInputStream(path);
-            DbxEntry.Folder diretorio = autenticacao.client.createFolder("/" + autenticacao.client.getAccountInfo().displayName.trim());
             DbxEntry.File arquivoCarregado = autenticacao.client.uploadFile("/" + autenticacao.client.getAccountInfo().displayName.trim() + "/" + arquivo.getName(), DbxWriteMode.add(), path.length(), inputStream);
             inputStream.close();
         }
+        DbxEntry.WithChildren metadataDirNuvem = autenticacao.client.getMetadataWithChildren("/" + autenticacao.client.getAccountInfo().displayName.trim());
+        hashDirAnterior = metadataDirNuvem.hash;
         System.out.println("--Arquivos carregados na nuvem--");
     }
 }
