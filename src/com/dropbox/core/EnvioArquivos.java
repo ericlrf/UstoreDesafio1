@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 /**
- * EFETUAR UPLOAD DE ARQUIVOS NA NUVEM
+ * DEFINIR PASTA LOCAL, NA NUVEM E EFETUAR UPLOAD DOS ARQUIVOS JÁ EXISTENTES
  *
  * @author Eric
  */
@@ -16,6 +16,7 @@ public class EnvioArquivos {
     private File[] conteudoDir;
     private Autenticacao autenticacao;
     private String caminhoPastaLocal;
+    private String caminhoPastaNuvem;
     private DbxEntry.WithChildren metadataDirAnterior;
 
     public EnvioArquivos(Autenticacao autenticacao) throws IOException, DbxException {
@@ -36,7 +37,13 @@ public class EnvioArquivos {
     }
 
     private void criarDiretorioNuvem(Autenticacao autenticacao) throws IOException, DbxException {
-        DbxEntry.Folder diretorio = autenticacao.getClient().createFolder("/" + autenticacao.getClient().getAccountInfo().displayName.trim());
+        caminhoPastaNuvem = "/" + autenticacao.getClient().getAccountInfo().displayName.trim();
+        DbxEntry.Folder pastaNuvem = autenticacao.getClient().createFolder(caminhoPastaNuvem);
+        DbxEntry.WithChildren metadataPastaNuvem = autenticacao.getClient().getMetadataWithChildren(caminhoPastaNuvem);
+        if (!metadataPastaNuvem.children.isEmpty()) {
+            autenticacao.getClient().delete(caminhoPastaNuvem);
+            DbxEntry.Folder novaPastaNuvem = autenticacao.getClient().createFolder(caminhoPastaNuvem);
+        }
         for (File arquivo : conteudoDir) {
             System.out.println("> " + arquivo.getName());
             path = new File(arquivo.getCanonicalPath());
@@ -62,6 +69,14 @@ public class EnvioArquivos {
 
     public void setCaminhoPastaLocal(String caminhoPastaLocal) {
         this.caminhoPastaLocal = caminhoPastaLocal;
+    }
+
+    public String getCaminhoPastaNuvem() {
+        return caminhoPastaNuvem;
+    }
+
+    public void setCaminhoPastaNuvem(String caminhoPastaNuvem) {
+        this.caminhoPastaNuvem = caminhoPastaNuvem;
     }
 
     public DbxEntry.WithChildren getMetadataDirAnterior() {
