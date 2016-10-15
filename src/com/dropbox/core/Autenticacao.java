@@ -15,7 +15,7 @@ public class Autenticacao {
     private String code = "1gsxh84tqGwAAAAAAAAXW6-ER--8omrmxY0uHBGhkDc";
     private DbxRequestConfig config;
     private DbxWebAuthNoRedirect webAuth;
-    public DbxClient client;
+    private DbxClient client;
 
     public Autenticacao() throws DbxException {
         carregarChaveSenha();
@@ -47,4 +47,13 @@ public class Autenticacao {
         client = new DbxClient(config, accessToken);
         System.out.println("--App autenticada pelo usuario '" + client.getAccountInfo().displayName + "'--");
     }
+
+    public DbxClient getClient() {
+        return client;
+    }
+
+    public void setClient(DbxClient client) {
+        this.client = client;
+    }
+    
 }

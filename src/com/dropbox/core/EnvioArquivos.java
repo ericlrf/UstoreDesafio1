@@ -14,8 +14,9 @@ public class EnvioArquivos {
 
     private File path;
     private File[] conteudoDir;
-    public Autenticacao autenticacao;
-    public String hashDirAnterior;
+    private Autenticacao autenticacao;
+    private String caminhoPastaLocal;
+    private DbxEntry.WithChildren metadataDirAnterior;
 
     public EnvioArquivos(Autenticacao autenticacao) throws IOException, DbxException {
         this.autenticacao = autenticacao;
@@ -29,22 +30,46 @@ public class EnvioArquivos {
         System.out.println(path.getCanonicalPath());
         System.out.println("Para sincronizar seus respectivos arquivos na nuvem: ");
         Scanner entrada = new Scanner(System.in);
-        String caminhoDir = entrada.next(); // Não foi tratado pathnames com acentos
-        path = new File(caminhoDir);
+        caminhoPastaLocal = entrada.next(); // Não foi tratado pathnames com acentos
+        path = new File(caminhoPastaLocal);
         conteudoDir = path.listFiles();
     }
 
     private void criarDiretorioNuvem(Autenticacao autenticacao) throws IOException, DbxException {
-        DbxEntry.Folder diretorio = autenticacao.client.createFolder("/" + autenticacao.client.getAccountInfo().displayName.trim());
+        DbxEntry.Folder diretorio = autenticacao.getClient().createFolder("/" + autenticacao.getClient().getAccountInfo().displayName.trim());
         for (File arquivo : conteudoDir) {
             System.out.println("> " + arquivo.getName());
             path = new File(arquivo.getCanonicalPath());
             FileInputStream inputStream = new FileInputStream(path);
-            DbxEntry.File arquivoCarregado = autenticacao.client.uploadFile("/" + autenticacao.client.getAccountInfo().displayName.trim() + "/" + arquivo.getName(), DbxWriteMode.add(), path.length(), inputStream);
+            DbxEntry.File arquivoCarregado = autenticacao.getClient().uploadFile("/" + autenticacao.getClient().getAccountInfo().displayName.trim() + "/" + arquivo.getName(), DbxWriteMode.add(), path.length(), inputStream);
             inputStream.close();
         }
-        DbxEntry.WithChildren metadataDirNuvem = autenticacao.client.getMetadataWithChildren("/" + autenticacao.client.getAccountInfo().displayName.trim());
-        hashDirAnterior = metadataDirNuvem.hash;
+        metadataDirAnterior = autenticacao.getClient().getMetadataWithChildren("/" + autenticacao.getClient().getAccountInfo().displayName.trim());
         System.out.println("--Arquivos carregados na nuvem--");
     }
+
+    public Autenticacao getAutenticacao() {
+        return autenticacao;
+    }
+
+    public void setAutenticacao(Autenticacao autenticacao) {
+        this.autenticacao = autenticacao;
+    }
+
+    public String getCaminhoPastaLocal() {
+        return caminhoPastaLocal;
+    }
+
+    public void setCaminhoPastaLocal(String caminhoPastaLocal) {
+        this.caminhoPastaLocal = caminhoPastaLocal;
+    }
+
+    public DbxEntry.WithChildren getMetadataDirAnterior() {
+        return metadataDirAnterior;
+    }
+
+    public void setMetadataDirAnterior(DbxEntry.WithChildren metadataDirAnterior) {
+        this.metadataDirAnterior = metadataDirAnterior;
+    }
+
 }

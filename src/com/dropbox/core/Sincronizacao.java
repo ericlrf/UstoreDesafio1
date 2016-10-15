@@ -1,6 +1,7 @@
 package com.dropbox.core;
 
 import com.dropbox.core.util.Maybe;
+import java.io.File;
 
 /**
  * ATUALIZAR ALTERAÇÃO DE ARQUIVOS NA PASTA LOCAL
@@ -10,28 +11,31 @@ import com.dropbox.core.util.Maybe;
 public class Sincronizacao {
 
     private DbxClient client;
+    private String caminhoPastaLocal;
 
     public Sincronizacao(EnvioArquivos envioArquivos) throws InterruptedException, DbxException {
-        this.client = envioArquivos.autenticacao.client;
-        Maybe<DbxEntry.WithChildren> metadataDirAtualizado = client.getMetadataWithChildrenIfChanged("/" + client.getAccountInfo().displayName.trim(), envioArquivos.hashDirAnterior);
-
-        if (metadataDirAtualizado.isJust()) {
-            DbxEntry.WithChildren lista = metadataDirAtualizado.getJust();
-            for (DbxEntry filho : lista.children) {
-                System.out.println("> " + filho.name);
-            }
-            System.out.println("-----------------------------");
+        this.client = envioArquivos.getAutenticacao().getClient();
+        this.caminhoPastaLocal = envioArquivos.getCaminhoPastaLocal();
+        Maybe<DbxEntry.WithChildren> modificacoesDir = client.getMetadataWithChildrenIfChanged("/" + client.getAccountInfo().displayName.trim(), envioArquivos.getMetadataDirAnterior().hash);
+        // IF: TRUE se conteudo do metadata-atualizado não coincide com o do metadata-anterior
+        if (modificacoesDir.isJust()) {
+            DbxEntry.WithChildren metadataDirAtualizado = modificacoesDir.getJust();
+            listarRevArquivos(metadataDirAtualizado);
+            atualizarPastaLocal(envioArquivos.getMetadataDirAnterior(), metadataDirAtualizado);
+            envioArquivos.setMetadataDirAnterior(metadataDirAtualizado);
         }
-
-//        DbxEntry.WithChildren lista = client.getMetadataWithChildren("/" + client.getAccountInfo().displayName.trim());
         Thread.sleep(5000);
     }
 
-    private void arquivosAddNaNuvem() {
-
+    private void atualizarPastaLocal(DbxEntry.WithChildren metadataDirAnterior, DbxEntry.WithChildren metadataDirAtualizado) {
+        
     }
 
-    private void arquivosDelNaNuvem() {
-
+    private void listarRevArquivos(DbxEntry.WithChildren metadataDir) {
+        for (DbxEntry filho : metadataDir.children) {
+            System.out.print("> " + filho.name);
+            System.out.println(" - " + filho.asFile().rev);
+        }
+        System.out.println("-----------------------------");
     }
 }
