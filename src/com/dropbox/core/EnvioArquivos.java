@@ -48,10 +48,10 @@ public class EnvioArquivos {
 //            System.out.println("> " + arquivo.getName());
             path = new File(arquivo.getCanonicalPath());
             FileInputStream inputStream = new FileInputStream(path);
-            DbxEntry.File arquivoCarregado = autenticacao.getClient().uploadFile("/" + autenticacao.getClient().getAccountInfo().displayName.trim() + "/" + arquivo.getName(), DbxWriteMode.add(), path.length(), inputStream);
+            DbxEntry.File arquivoCarregado = autenticacao.getClient().uploadFile(caminhoPastaNuvem + "/" + arquivo.getName(), DbxWriteMode.add(), path.length(), inputStream);
             inputStream.close();
         }
-        metadataDirAnterior = autenticacao.getClient().getMetadataWithChildren("/" + autenticacao.getClient().getAccountInfo().displayName.trim());
+        metadataDirAnterior = autenticacao.getClient().getMetadataWithChildren(caminhoPastaNuvem);
 //        System.out.println("--Arquivos carregados na nuvem--");
     }
 

@@ -11,19 +11,23 @@ import java.io.IOException;
  *
  * @author Eric
  */
-public class Sincronizacao {
+public class Sincronizacao { // corrigir variaveis para caminhoPastaNuvem
 
     private DbxClient client;
+    private EnvioArquivos envioArquivos;
     private String caminhoPastaLocal;
+    private String caminhoPastaNuvem;
     private String cursor = null;
 
     public Sincronizacao(EnvioArquivos envioArquivos) {
         this.client = envioArquivos.getAutenticacao().getClient();
         this.caminhoPastaLocal = envioArquivos.getCaminhoPastaLocal();
+        this.caminhoPastaNuvem = envioArquivos.getCaminhoPastaNuvem();
+        this.envioArquivos = envioArquivos;
     }
 
     public void atualizarPastaLocal() throws InterruptedException, DbxException, IOException {
-        DbxDelta<DbxEntry> result = client.getDeltaWithPathPrefix(cursor, "/" + client.getAccountInfo().displayName.trim());
+        DbxDelta<DbxEntry> result = client.getDeltaWithPathPrefix(cursor, caminhoPastaNuvem);
         cursor = result.cursor;
         for (DbxDelta.Entry entry : result.entries) {
             if (entry.metadata == null) {
@@ -44,9 +48,14 @@ public class Sincronizacao {
             }
         }
         if (!result.hasMore) {
+            envioArquivos.setMetadataDirAnterior(client.getMetadataWithChildren(caminhoPastaNuvem));
 //            client.getLongpollDelta(cursor, 30);
             Thread.sleep(4000);
         }
+    }
+
+    public void atualizarPastaNuvem() {
+
     }
 
     private void listarRevArquivos(DbxEntry.WithChildren metadataDir) {
@@ -70,7 +79,7 @@ public class Sincronizacao {
 //            }
 //        }
 //    }
-//        Maybe<DbxEntry.WithChildren> modificacoesDir = client.getMetadataWithChildrenIfChanged("/" + client.getAccountInfo().displayName.trim(), envioArquivos.getMetadataDirAnterior().hash);
+//        Maybe<DbxEntry.WithChildren> modificacoesDir = client.getMetadataWithChildrenIfChanged(caminhoPastaNuvem, envioArquivos.getMetadataDirAnterior().hash);
 //        // IF: TRUE se conteudo do metadata-atualizado não coincide com o do metadata-anterior
 //        if (modificacoesDir.isJust()) {
 //            DbxEntry.WithChildren metadataDirAtualizado = modificacoesDir.getJust();
@@ -79,5 +88,4 @@ public class Sincronizacao {
 //            atualizarPastaNuvem();
 //            envioArquivos.setMetadataDirAnterior(metadataDirAtualizado);
 //        }
-
 }

@@ -15,6 +15,7 @@ public class Main {
         System.out.println("--Pasta sincronizada com sucesso--");
         while (true) {            
             sincronizacao.atualizarPastaLocal();
+            sincronizacao.atualizarPastaNuvem();
         }
     }
 }
