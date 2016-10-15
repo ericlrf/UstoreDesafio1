@@ -45,14 +45,14 @@ public class EnvioArquivos {
             DbxEntry.Folder novaPastaNuvem = autenticacao.getClient().createFolder(caminhoPastaNuvem);
         }
         for (File arquivo : conteudoDir) {
-            System.out.println("> " + arquivo.getName());
+//            System.out.println("> " + arquivo.getName());
             path = new File(arquivo.getCanonicalPath());
             FileInputStream inputStream = new FileInputStream(path);
             DbxEntry.File arquivoCarregado = autenticacao.getClient().uploadFile("/" + autenticacao.getClient().getAccountInfo().displayName.trim() + "/" + arquivo.getName(), DbxWriteMode.add(), path.length(), inputStream);
             inputStream.close();
         }
         metadataDirAnterior = autenticacao.getClient().getMetadataWithChildren("/" + autenticacao.getClient().getAccountInfo().displayName.trim());
-        System.out.println("--Arquivos carregados na nuvem--");
+//        System.out.println("--Arquivos carregados na nuvem--");
     }
 
     public Autenticacao getAutenticacao() {
