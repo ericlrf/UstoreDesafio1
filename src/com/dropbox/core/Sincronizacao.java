@@ -2,6 +2,9 @@ package com.dropbox.core;
 
 import com.dropbox.core.util.Maybe;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * ATUALIZAR ALTERAÇÃO DE ARQUIVOS NA PASTA LOCAL
@@ -42,17 +45,31 @@ public class Sincronizacao {
         }
     }
 
-    public void verificarPastaNuvem() throws InterruptedException, DbxException {
+    public void verificarPastaNuvem() throws InterruptedException, DbxException, FileNotFoundException, IOException {
         DbxDelta<DbxEntry> result = client.getDeltaWithPathPrefix(cursor, "/" + client.getAccountInfo().displayName.trim());
         cursor = result.cursor;
         if (result.reset) {
             System.out.println("--Pasta na nuvem limpa--");
+            //igualar local-nuvem , momento critico
+            //fazer alguma operacao q exclua arquivos na pasta da nuvem
+            //copiar agora (nao antes) arquivos locais na pasta da nuvem
         }
         for (DbxDelta.Entry entry : result.entries) {
             if (entry.metadata == null) {
+                String fileName = entry.lcPath;
+                fileName = fileName.substring(fileName.lastIndexOf("/")+1);
                 System.out.println("Excluído: " + entry.lcPath);
+                File deletedFile = new File(caminhoPastaLocal + "\\" + fileName);
+                deletedFile.delete();
             } else {
+                DbxEntry file = client.getMetadata(entry.lcPath);
                 System.out.println("Adicionado/Modificado: " + entry.lcPath);
+                FileOutputStream outputStream = new FileOutputStream(caminhoPastaLocal + "\\" + file.name);
+                try {
+                    DbxEntry.File downloadedFile = client.getFile(entry.lcPath, null, outputStream);
+                } finally {
+                    outputStream.close();
+                }
             }
         }
         if (!result.hasMore) {

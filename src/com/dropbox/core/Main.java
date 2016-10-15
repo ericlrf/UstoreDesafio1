@@ -12,8 +12,8 @@ public class Main {
         Autenticacao autenticacao = new Autenticacao();
         EnvioArquivos envioArquivos = new EnvioArquivos(autenticacao);
         Sincronizacao sincronizacao = new Sincronizacao(envioArquivos);
-        System.out.println("5-Crie ou edite arquivos na pasta escolhida. ");
-        System.out.println("Serão sincronizados automaticamente na nuvem.");
+        System.out.println("5-Pronto!Os arquivos na pasta escolhida,");
+        System.out.println("estão sincronizados com a nuvem.");
         while (true) {            
             sincronizacao.verificarPastaNuvem();
         }
