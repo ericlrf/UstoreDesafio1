@@ -15,7 +15,6 @@ import java.util.Date;
  */
 public class Sincronizacao { // corrigir variaveis para caminhoPastaNuvem
 
-    private File path;
     private DbxClient client;
     private EnvioArquivos envioArquivos;
     private String caminhoPastaLocal;
@@ -58,18 +57,18 @@ public class Sincronizacao { // corrigir variaveis para caminhoPastaNuvem
             }
         }
         if (!result.hasMore) {
-            System.out.println("--" + ultimaModificacaoNuvem + "--");
+//            System.out.println("--" + ultimaModificacaoNuvem + "--");
             envioArquivos.setMetadataDirAnterior(client.getMetadataWithChildren(caminhoPastaNuvem));
-            Thread.sleep(4000);
+//            Thread.sleep(1000);
         }
     }
-
-    public void atualizarPastaNuvem() throws DbxException, IOException {
+       
+    public void atualizarPastaNuvem() throws DbxException, IOException {     
         int contador = 0;
         Date date;
         File pasta = new File(caminhoPastaLocal);
         for (File arquivoLocal : pasta.listFiles()) {
-            if (arquivoLocal.isFile()) { // Este app não implementa sincronização de sub-pastas
+            if (arquivoLocal.isFile() && !arquivoLocal.isHidden()) { // Este app não implementa sincronização de sub-pastas e arquivos ocultos
                 for (DbxEntry arquivoNuvem : envioArquivos.getMetadataDirAnterior().children) {
                     if (arquivoNuvem.isFile()) { // Este app não implementa sincronização sub-pastas
                         if (arquivoLocal.getName().equalsIgnoreCase(arquivoNuvem.name)) { // existe 1 arquivo na nuvem com nome do arquivoLocal
@@ -78,19 +77,21 @@ public class Sincronizacao { // corrigir variaveis para caminhoPastaNuvem
                                 // deletar arquivo na nuvem com nome do arquivoLocal
                                 client.delete(caminhoPastaNuvem + "/" + arquivoNuvem.name);
                                 // upload arquivoLocal
-                                path = new File(arquivoLocal.getCanonicalPath());
+                                File path = new File(arquivoLocal.getCanonicalPath());
                                 FileInputStream inputStream = new FileInputStream(path);
                                 DbxEntry.File arquivoCarregado = client.uploadFile(caminhoPastaNuvem + "/" + arquivoLocal.getName(), DbxWriteMode.add(), path.length(), inputStream);
                                 inputStream.close();
+                                ultimaModificacaoNuvem = new Date(System.currentTimeMillis());
                             }
                             if (date.after(ultimaModificacaoNuvem)) { // arquivoLocal adicionado/editado depois da ultima atualizacao da nuvem na pastaLocal
                                 // deletar arquivo na nuvem com nome do arquivoLocal
                                 client.delete(caminhoPastaNuvem + "/" + arquivoNuvem.name);
                                 // upload arquivoLocal
-                                path = new File(arquivoLocal.getCanonicalPath());
+                                File path = new File(arquivoLocal.getCanonicalPath());
                                 FileInputStream inputStream = new FileInputStream(path);
                                 DbxEntry.File arquivoCarregado = client.uploadFile(caminhoPastaNuvem + "/" + arquivoLocal.getName(), DbxWriteMode.add(), path.length(), inputStream);
                                 inputStream.close();
+                                ultimaModificacaoNuvem = new Date(System.currentTimeMillis());
                             }
                         } else { // verificado mais um arquivo na nuvem sem o nome do arquivoLocal
                             contador++;
@@ -99,10 +100,11 @@ public class Sincronizacao { // corrigir variaveis para caminhoPastaNuvem
                 }
                 if (contador == envioArquivos.getMetadataDirAnterior().children.size()) { // não existe nenhum arquivo na nuvem com nome do arquivoLocal
                     //upload arquivoLocal
-                    path = new File(arquivoLocal.getCanonicalPath());
+                    File path = new File(arquivoLocal.getCanonicalPath());
                     FileInputStream inputStream = new FileInputStream(path);
                     DbxEntry.File arquivoCarregado = client.uploadFile(caminhoPastaNuvem + "/" + arquivoLocal.getName(), DbxWriteMode.add(), path.length(), inputStream);
                     inputStream.close();
+                    ultimaModificacaoNuvem = new Date(System.currentTimeMillis());
                 }
             }
         }
@@ -111,7 +113,7 @@ public class Sincronizacao { // corrigir variaveis para caminhoPastaNuvem
             for (DbxEntry arquivoNuvem : envioArquivos.getMetadataDirAnterior().children) {
                 if (arquivoNuvem.isFile()) { // Este app não implementa sincronização sub-pastas
                     for (File arquivoLocal : pasta.listFiles()) {
-                        if (arquivoLocal.isFile()) { // Este app não implementa sincronização de sub-pastas
+                        if (arquivoLocal.isFile() && !arquivoLocal.isHidden()) { // Este app não implementa sincronização de sub-pastas e arquivos ocultos
                             if (!arquivoNuvem.name.equalsIgnoreCase(arquivoLocal.getName())) { // verificado mais um arquivoLocal sem o nome do arquivo na nuvem
                                 contador++;
                             }
@@ -119,11 +121,12 @@ public class Sincronizacao { // corrigir variaveis para caminhoPastaNuvem
                     }
                     if (contador == pasta.listFiles().length) { // não existe nenhum arquivoLocal com nome do arquivo na nuvem
                         // deletar arquivo na nuvem
+                        String nome = arquivoNuvem.name;
                         client.delete(caminhoPastaNuvem + "/" + arquivoNuvem.name);
+                        ultimaModificacaoNuvem = new Date(System.currentTimeMillis());
                     }
                 }
             }
         }
-        System.out.println("------------------------------");
     }
 }

@@ -27,13 +27,17 @@ public class EnvioArquivos {
         criarDiretorioNuvem(autenticacao);
     }
 
+    /**
+     * Define a pasta do computador local que será sincronizada na nuvem.
+     * Não reconhece o caminho absoluto de uma pasta que contém palavras acentuadas.
+     */
     private void carregarDiretorioLocal() throws IOException {
         System.out.println("4-Digite o caminho de uma pasta neste computador. Exemplo: ");
         path = new File("");
         System.out.println(path.getCanonicalPath());
         System.out.println("Para sincronizar seus respectivos arquivos na nuvem: ");
         Scanner entrada = new Scanner(System.in);
-        caminhoPastaLocal = entrada.next(); // Não foi tratado pathnames com acentos
+        caminhoPastaLocal = entrada.next(); // Não foi tratado pathnames com palavras acentuadas
         path = new File(caminhoPastaLocal);
         conteudoDir = path.listFiles();
     }
