@@ -3,6 +3,7 @@ package com.dropbox.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -17,6 +18,7 @@ public class EnvioArquivos {
     private Autenticacao autenticacao;
     private String caminhoPastaLocal;
     private String caminhoPastaNuvem;
+    private Date criacaoPastaNuvem;
     private DbxEntry.WithChildren metadataDirAnterior;
 
     public EnvioArquivos(Autenticacao autenticacao) throws IOException, DbxException {
@@ -37,22 +39,21 @@ public class EnvioArquivos {
     }
 
     private void criarDiretorioNuvem(Autenticacao autenticacao) throws IOException, DbxException {
-        caminhoPastaNuvem = "/" + autenticacao.getClient().getAccountInfo().displayName.trim();
+        caminhoPastaNuvem = "/" + autenticacao.getClient().getAccountInfo().displayName;
         DbxEntry.Folder pastaNuvem = autenticacao.getClient().createFolder(caminhoPastaNuvem);
         DbxEntry.WithChildren metadataPastaNuvem = autenticacao.getClient().getMetadataWithChildren(caminhoPastaNuvem);
         if (!metadataPastaNuvem.children.isEmpty()) {
             autenticacao.getClient().delete(caminhoPastaNuvem);
             DbxEntry.Folder novaPastaNuvem = autenticacao.getClient().createFolder(caminhoPastaNuvem);
         }
+        criacaoPastaNuvem = new Date(System.currentTimeMillis());
         for (File arquivo : conteudoDir) {
-//            System.out.println("> " + arquivo.getName());
             path = new File(arquivo.getCanonicalPath());
             FileInputStream inputStream = new FileInputStream(path);
             DbxEntry.File arquivoCarregado = autenticacao.getClient().uploadFile(caminhoPastaNuvem + "/" + arquivo.getName(), DbxWriteMode.add(), path.length(), inputStream);
             inputStream.close();
         }
         metadataDirAnterior = autenticacao.getClient().getMetadataWithChildren(caminhoPastaNuvem);
-//        System.out.println("--Arquivos carregados na nuvem--");
     }
 
     public Autenticacao getAutenticacao() {
@@ -85,6 +86,14 @@ public class EnvioArquivos {
 
     public void setMetadataDirAnterior(DbxEntry.WithChildren metadataDirAnterior) {
         this.metadataDirAnterior = metadataDirAnterior;
+    }
+
+    public Date getCriacaoPastaNuvem() {
+        return criacaoPastaNuvem;
+    }
+
+    public void setCriacaoPastaNuvem(Date criacaoPastaNuvem) {
+        this.criacaoPastaNuvem = criacaoPastaNuvem;
     }
 
 }
